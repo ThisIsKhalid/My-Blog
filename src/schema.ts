@@ -5,6 +5,10 @@ export const typeDefs = `#graphql
     posts: [Post]
   }
 
+  type Mutation {
+    signUp(name: String!, email: String!, password: String!): User
+  }
+
   type Post {
     id: ID!
     title: String!
