@@ -7,12 +7,14 @@ export const typeDefs = `#graphql
   }
 
   type Mutation {
-    signUp(name: String!, email: String!, password: String!): SignUpResponse
+    signUp(name: String!, email: String!, password: String!): AuthPayload,
+
+    signIn(email: String!, password: String!): AuthPayload
   }
 
-  type SignUpResponse {
+  type AuthPayload {
     token: String
- }
+  }
 
   type Post {
     id: ID!

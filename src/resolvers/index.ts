@@ -46,5 +46,48 @@ export const resolvers = {
         token,
       };
     },
+
+    signIn: async (
+      parent: any,
+      args: {
+        email: string;
+        password: string;
+      },
+      context: any
+    ) => {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: args.email,
+        },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        args.password,
+        user.password
+      );
+
+      if (!isPasswordValid) {
+        throw new Error("Invalid password");
+      }
+
+      const token = jwt.sign(
+        {
+          userId: user.id,
+          email: user.email,
+        },
+        "signature",
+        {
+          expiresIn: "1d",
+        }
+      );
+
+      return {
+        token,
+      };
+    },
   },
 };
