@@ -7,8 +7,12 @@ export const typeDefs = `#graphql
   }
 
   type Mutation {
-    signUp(name: String!, email: String!, password: String!): User
+    signUp(name: String!, email: String!, password: String!): SignUpResponse
   }
+
+  type SignUpResponse {
+    token: String
+ }
 
   type Post {
     id: ID!
@@ -35,7 +39,6 @@ export const typeDefs = `#graphql
     createdAt: String!
   }
 `;
-
 
 // 1. aikhane ja likha hosse seta data show korar jonno query likhte hobe
 // 2. ! dile seta required field
