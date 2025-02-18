@@ -9,6 +9,12 @@ interface IUserInfo {
   bio?: string;
 }
 
+interface IPost {
+  title: string;
+  content: string;
+  published?: boolean;
+}
+
 export const Mutation = {
   signUp: async (parent: any, args: IUserInfo, { prisma }: any) => {
     // console.log(args);
@@ -99,6 +105,30 @@ export const Mutation = {
 
     return {
       token,
+    };
+  },
+
+  addPost: async (parent: any, args: IPost, { prisma, userInfo }: any) => {
+    // console.log(args);
+    console.log(userInfo, "userInfo");
+
+    if (!userInfo) {
+      return {
+        errorMessage: "Unauthorized",
+      };
+    }
+
+    const newPost = await prisma.post.create({
+      data: {
+        title: args.title,
+        content: args.content,
+        published: args.published,
+        authorId: userInfo.userId,
+      },
+    });
+
+    return {
+      post: newPost,
     };
   },
 };
