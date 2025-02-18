@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import config from "../config";
+import { jwtHelpers } from "../utils/jwtHelpers";
 
 const prisma = new PrismaClient();
 
@@ -8,6 +9,7 @@ interface IUserInfo {
   name: string;
   email: string;
   password: string;
+  bio?: string;
 }
 
 export const resolvers = {
@@ -20,6 +22,20 @@ export const resolvers = {
   Mutation: {
     signUp: async (parent: any, args: IUserInfo, context: any) => {
       // console.log(args);
+      // return;
+
+      const user = await prisma.user.findUnique({
+        where: {
+          email: args.email,
+        },
+      });
+
+      if (user) {
+        return {
+          errorMessage: "User already exists",
+        };
+      }
+
       const hashedPassword = await bcrypt.hash(args.password, 12);
       // console.log(hashedPassword);
 
@@ -31,15 +47,22 @@ export const resolvers = {
         },
       });
 
-      const token = jwt.sign(
+      if(args?.bio){
+        await prisma.profile.create({
+          data: {
+            bio: args.bio,
+            userId: newUser.id,
+          },
+        });
+      }
+
+      const token = jwtHelpers.generateToken(
         {
           userId: newUser.id,
           email: newUser.email,
         },
-        "signature",
-        {
-          expiresIn: "1d",
-        }
+        config.jwt.jwt_secret as string,
+        config.jwt.expires_in as string
       );
 
       return {
@@ -62,7 +85,9 @@ export const resolvers = {
       });
 
       if (!user) {
-        throw new Error("User not found");
+        return {
+          errorMessage: "User not found",
+        }
       }
 
       const isPasswordValid = await bcrypt.compare(
@@ -71,18 +96,18 @@ export const resolvers = {
       );
 
       if (!isPasswordValid) {
-        throw new Error("Invalid password");
+        return {
+          errorMessage: "Invalid password",
+        }
       }
 
-      const token = jwt.sign(
+      const token = jwtHelpers.generateToken(
         {
           userId: user.id,
           email: user.email,
         },
-        "signature",
-        {
-          expiresIn: "1d",
-        }
+        config.jwt.jwt_secret as string,
+        config.jwt.expires_in as string
       );
 
       return {
